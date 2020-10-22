@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include <stdbool.h>
-#define FILENAME "arbitrarydata.txt"
+#include "stdafx.h"
+#include "stdio.h"
+#include "stdlib.h"
+#include "windows.h"
+#include <io.h>
+#include <fcntl.h>
+#define FILENAME "c:\\temp\\arbitrarydata.txt"
+#define BIN_FILENAME "c:\\temp\\outfile.bin"
 #define CHUNK 200
 
 void writeToFile(char *buf, size_t len) {
@@ -33,6 +40,39 @@ char *readinput(int *lent) {
     *lent = inputlen;
     return input;
 }
+
+
+void readbinaryinput() {
+    char rbuf[CHUNK * 20];
+    char *outfilename = BIN_FILENAME;
+    size_t r;
+    
+    freopen(NULL, "rb", stdin);
+    _setmode(_fileno(stdin), _O_BINARY); //Setting the stdin mode to binary
+
+    FILE *f = fopen(outfilename, "w+b"); // Opening the file in binary mode 
+    if (f == NULL) {
+        printf("unable to open %s\n", outfilename);
+        return;
+    }
+   while(1) {
+        read_data = fread(rbuf, 1, sizeof(rbuf), stdin);
+        if (read_data > 0)    {
+            size_t writen_data;
+            for (size_t nleft =read_data; nleft > 0; )         {
+                writen_data = fwrite(rbuf, 1, nleft, f);
+                if (writen_data == 0)       {
+                    printf("error: unable to write %d bytes to %s\n", nleft, outfilename);
+                    return;
+                }
+                nleft -= writen_data;
+                fflush(f);
+            }
+        }
+    }
+   _setmode(_fileno(stdin), _O_TEXT); //Change the mode back to Text
+    return;
+}
 int main()
 {
     int n = 0,i;
@@ -41,11 +81,20 @@ int main()
        printf("\nEnter the number of input you want to enter: ");
        scanf("%d",&n);
        for(i = 1; i<= n; i++) {
-           printf("\nEnter your %dth data: ",i);
-           size_t len = 10;
-           char *buf = readinput(&len);
-           if( buf && len) {
-               writeToFile(buf,len);
+           printf("Do you wanna enter data which is binary/image/exe: (y/n)");
+           scanf("%c", option);
+           if(option == 'y') { 
+             readbinaryinput();
+             continue;
+           } else if(option =='n') {
+              size_t len = 10;
+              char *buf = readinput(&len);
+              if( buf && len) {
+                 writeToFile(buf,len);
+              }
+           } else {
+             printf("Invalid Option:%c\n",option);
+             i--;
            }
        }
     }
